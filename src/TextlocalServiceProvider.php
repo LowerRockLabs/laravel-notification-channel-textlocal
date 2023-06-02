@@ -12,6 +12,11 @@ class TextlocalServiceProvider extends ServiceProvider
     public function boot()
     {
         // Bootstrap code here.
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/textlocal.php', 'textlocal'
+        );
+
+
         //* creating a Textlocal instance when needs by app.
         $this->app->when(TextlocalChannel::class)
             ->needs(Textlocal::class)
@@ -27,8 +32,9 @@ class TextlocalServiceProvider extends ServiceProvider
                     );
                 }
             );
-
-        $this->publishConfiguration();
+            
+    
+    
     }
 
     /**
@@ -36,17 +42,9 @@ class TextlocalServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $config = __DIR__ . '/../config/textlocal.php';
-
-        $this->mergeConfigFrom($config, 'textlocal');
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/textlocal.php', 'textlocal'
+        );
     }
 
-    public function publishConfiguration()
-    {
-        $path   =   realpath(__DIR__.'/../config/textlocal.php');
-        
-        $this->publishes([
-            $path => config_path('textlocal.php')
-        ], 'textlocal');
-    }
 }

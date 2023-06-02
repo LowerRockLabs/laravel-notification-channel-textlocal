@@ -6,6 +6,7 @@ use Illuminate\Notifications\Notification;
 use NotificationChannels\Textlocal\Contracts\INotificationUsesTextlocalClientConfig;
 use NotificationChannels\Textlocal\Contracts\IUsesTextlocalClientConfig;
 use NotificationChannels\Textlocal\Exceptions\CouldNotSendNotification;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Textlocal channel class which is used to interact with core
@@ -14,9 +15,9 @@ use NotificationChannels\Textlocal\Exceptions\CouldNotSendNotification;
  */
 class TextlocalChannel
 {
-    private $sender;
-    private $receiptURL;
-    private $customData;
+    public $sender;
+    public $receiptURL;
+    public $customData;
 
     /**
      * creates a textlocal channel object by using the configs
@@ -25,7 +26,7 @@ class TextlocalChannel
      */
     public function __construct(private Textlocal $client)
     {
-        $this->sender = config('textlocal.sender');
+        $this->sender = config('textlocal.sender', 'LRLTestConst');
     }
 
     /**
@@ -38,12 +39,41 @@ class TextlocalChannel
      */
     public function send($notifiable, Notification $notification)
     {
+        
         // Get the mobile number/s from the model
-        if (! $numbers = $notifiable->routeNotificationFor('Textlocal')) {
+        Log::info('Trying!');
+        Log::info('Notifiable');
+        
+        if ($notifiable->routeNotificationFor(\NotificationChannels\TextLocal\TextlocalChannel::class))
+        {
+            $numbers[] = $notifiable->routeNotificationFor(\NotificationChannels\TextLocal\TextlocalChannel::class);
+        }
+        else if ($notifiable->routeNotificationFor(self::class, $notification)) {
+            Log::info('Route for Self');
+
+            $numbers = $notifiable->routeNotificationFor(self::class, $notification);
+        }
+        else if ($notifiable->routeNotificationFor('textlocal', $notification)) {
+            Log::info('Route for x');
+
+            $numbers =  $notifiable->routeNotificationFor('textlocal', $notification);
+        }
+        else if (isset($notifiable->phone_number)) {
+            Log::info('Has phone_number?');
+
+            $numbers =  $notifiable->phone_number;
+        }
+        else
+        {
+            Log::info("No Numbers!");
             return;
         }
 
+        
+
         if (empty($numbers)) {
+            Log::info('No Numbers!');
+
             return;
         }
 
@@ -51,10 +81,13 @@ class TextlocalChannel
             $numbers = [$numbers];
         }
 
+
         // Get the message from the notification class
         $message = (string) $notification->toTextlocal($notifiable);
 
         if (empty($message)) {
+            Log::info('No Message!');
+
             return;
         }
 
@@ -84,12 +117,16 @@ class TextlocalChannel
         $client = $this->getClient($notifiable, $notification);
 
         try {
+            Log::info('Try Sending !');
+
             $response = $client
-                ->setUnicodeMode($unicode)
                 ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL, $this->customData);
 
             return $response;
         } catch (\Exception $exception) {
+            Log::info('Exception:');
+            Log::error($exception);
+
             throw CouldNotSendNotification::serviceRespondedWithAnError($exception, $message);
         }
     }

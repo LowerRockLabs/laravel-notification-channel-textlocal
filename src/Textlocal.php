@@ -59,13 +59,8 @@ class Textlocal
      */
     private function _sendRequest($command, $params = [])
     {
-        if ($this->apiKey && ! empty($this->apiKey)) {
-            $params['apiKey'] = $this->apiKey;
-        } else {
-            $params['hash'] = $this->hash;
-        }
+        $params['apiKey'] = urlencode(config('lrlMessaging.provider-textlocal.API_KEY'));
         // Create request string
-        $params['username'] = $this->username;
 
         $this->lastRequest = $params;
 
@@ -181,20 +176,13 @@ class Textlocal
         if (empty($sender)) {
             throw new Exception('Empty sender name');
         }
-        if (! is_null($sched) && ! is_numeric($sched)) {
-            throw new Exception('Invalid date format. Use numeric epoch format');
-        }
 
         $params = [
             'message'       =>  rawurlencode($message),
             'numbers'       =>  implode(',', $numbers),
             'sender'        =>  rawurlencode($sender),
-            'schedule_time' =>  $sched,
-            'test'          =>  $test,
             'receipt_url'   =>  $receiptURL,
             'custom'        =>  $custom,
-            'optouts'       =>  $optouts,
-            'simple_reply'  =>  $simpleReplyService,
             'unicode'       =>  $this->treatAsUnicode,
         ];
 
