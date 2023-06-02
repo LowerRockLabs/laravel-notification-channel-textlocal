@@ -16,6 +16,7 @@ class TextlocalChannel
 {
     private $sender;
     private $receiptURL;
+    private $customData;
 
     /**
      * creates a textlocal channel object by using the configs
@@ -68,6 +69,14 @@ class TextlocalChannel
         {
             $this->receiptURL = $notification->getTextlocalReceiptURL();
         }
+
+        // Get custom data
+        if (method_exists($notification, 'getTextlocalCustomData'))
+        {
+            $this->customData = $notification->getTextlocalCustomData();
+        }
+
+
         /*if (method_exists($notification, 'getSenderId')) {
             $this->sender = $notification->getSenderId($notifiable);
         }*/
@@ -77,7 +86,7 @@ class TextlocalChannel
         try {
             $response = $client
                 ->setUnicodeMode($unicode)
-                ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL);
+                ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL, $this->customData);
 
             return $response;
         } catch (\Exception $exception) {
