@@ -15,6 +15,7 @@ use NotificationChannels\Textlocal\Exceptions\CouldNotSendNotification;
 class TextlocalChannel
 {
     private $sender;
+    private $receiptURL;
 
     /**
      * creates a textlocal channel object by using the configs
@@ -50,7 +51,7 @@ class TextlocalChannel
         }
 
         // Get the message from the notification class
-        $message = (string) $notification->toSms($notifiable);
+        $message = (string) $notification->toTextlocal($notifiable);
 
         if (empty($message)) {
             return;
@@ -62,16 +63,21 @@ class TextlocalChannel
             $unicode = $notification->getUnicodeMode();
         }
 
-        if (method_exists($notification, 'getSenderId')) {
-            $this->sender = $notification->getSenderId($notifiable);
+        // Get receipt URL
+        if (method_exists($notification, 'getTextlocalReceiptURL'))
+        {
+            $this->receiptURL = $notification->getTextlocalReceiptURL();
         }
+        /*if (method_exists($notification, 'getSenderId')) {
+            $this->sender = $notification->getSenderId($notifiable);
+        }*/
 
         $client = $this->getClient($notifiable, $notification);
 
         try {
             $response = $client
                 ->setUnicodeMode($unicode)
-                ->sendSms($numbers, $message, $this->sender);
+                ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL);
 
             return $response;
         } catch (\Exception $exception) {
