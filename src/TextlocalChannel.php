@@ -18,14 +18,17 @@ class TextlocalChannel
     public $sender;
     public $receiptURL;
     public $customData;
+    protected Textlocal $client;
 
     /**
      * creates a textlocal channel object by using the configs
      *
      * @param Textlocal $client
      */
-    public function __construct(private Textlocal $client)
+    public function __construct(Textlocal $client)
     {
+        $this->client = $client;
+
         $this->sender = config('textlocal.sender', 'LRLTestConst');
     }
 
@@ -114,21 +117,22 @@ class TextlocalChannel
             $this->sender = $notification->getSenderId($notifiable);
         }*/
 
-        $client = $this->getClient($notifiable, $notification);
-
         try {
-            Log::info('Try Sending !');
-
-            $response = $client
-                ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL, $this->customData);
-
-            return $response;
-        } catch (\Exception $exception) {
-            Log::info('Exception:');
-            Log::error($exception);
-
-            throw CouldNotSendNotification::serviceRespondedWithAnError($exception, $message);
+            $client = $this->getClient($notifiable, $notification);
         }
+        catch (Exception $e)
+        {
+            throw CouldNotSendNotification::serviceRespondedWithAnError($e, "Faults");
+        }
+        try {
+            $response = $client
+            ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL, $this->customData);    
+        }
+        catch (Exception $e)
+        {
+            throw CouldNotSendNotification::serviceRespondedWithAnError($e, "Faults");
+        }
+        return $response;
     }
 
     public function getClient($notifiable, Notification $notification)

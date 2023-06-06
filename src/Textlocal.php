@@ -2,6 +2,7 @@
 
 namespace NotificationChannels\Textlocal;
 
+use NotificationChannels\Textlocal\Exceptions\CouldNotSendNotification;
 use Exception;
 
 /**
@@ -67,18 +68,13 @@ class Textlocal
         if (self::REQUEST_HANDLER == 'curl') {
             $rawResponse = $this->_sendRequestCurl($command, $params);
         } else {
-            throw new Exception('Invalid request handler.');
+            throw CouldNotSendNotification::serviceRespondedWithAnError(new Exception("Invalid request handler"));
         }
 
         $result = json_decode($rawResponse);
         if (isset($result->errors)) {
             if (count($result->errors) > 0) {
-                foreach ($result->errors as $error) {
-                    switch ($error->code) {
-                    default:
-                        throw new Exception($error->message);
-                    }
-                }
+                throw CouldNotSendNotification::serviceRespondedWithAnError(new Exception("Invalid request handler"));
             }
         }
 
@@ -185,8 +181,17 @@ class Textlocal
             'custom'        =>  $custom,
             'unicode'       =>  $this->treatAsUnicode,
         ];
-
-        return $this->_sendRequest('send', $params);
+        
+        try {
+            $result = $this->_sendRequest('send', $params);
+        }
+        catch (Exception $e)
+        {
+            throw CouldNotSendNotification::serviceRespondedWithAnError($e, 'Could Not Connect');
+        }
+        return $result;
+        
+        
     }
 
     /**
