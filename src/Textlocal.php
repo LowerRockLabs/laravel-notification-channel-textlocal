@@ -60,7 +60,7 @@ class Textlocal
      */
     private function _sendRequest($command, $params = [])
     {
-        $params['apiKey'] = urlencode(config('lrlMessaging.provider-textlocal.API_KEY'));
+        $params['apiKey'] = urlencode(config('textlocal.api_key'));
         // Create request string
 
         $this->lastRequest = $params;
@@ -177,7 +177,7 @@ class Textlocal
             'message'       =>  rawurlencode($message),
             'numbers'       =>  implode(',', $numbers),
             'sender'        =>  rawurlencode($sender),
-            'receipt_url'   =>  $receiptURL,
+            'receipt_url'   =>  $receiptURL ?? config('textlocal.receipt_url'),
             'custom'        =>  $custom,
             'unicode'       =>  $this->treatAsUnicode,
         ];
@@ -231,7 +231,7 @@ class Textlocal
         'sender'        => rawurlencode($sender),
         'schedule_time' => $sched,
         'test'          => $test,
-        'receipt_url'   => $receiptURL,
+        'receipt_url'   => $receiptURL ?? config('textlocal.receipt_url'),
         'custom'        => $custom,
         'optouts'       => $optouts,
         'simple_reply'  => $simpleReplyService,
@@ -275,6 +275,7 @@ class Textlocal
         'schedule_time' => $sched,
         'test'          => $test,
         'optouts'       => $optouts,
+        'receipt_url'   => $receiptURL ?? config('textlocal.receipt_url'),
         ];
 
         /*
@@ -324,6 +325,7 @@ class Textlocal
         'schedule_time' => $sched,
         'test'          => $test,
         'optouts'       => $optouts,
+        'receipt_url'   => $receiptURL ?? config('textlocal.receipt_url'),
         ];
 
         /*

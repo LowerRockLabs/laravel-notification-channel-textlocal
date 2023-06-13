@@ -29,7 +29,7 @@ class TextlocalChannel
     {
         $this->client = $client;
 
-        $this->sender = config('textlocal.sender', 'LRLTestConst');
+        $this->sender = config('textlocal.sender', 'DefaultSender');
     }
 
     /**
@@ -44,8 +44,6 @@ class TextlocalChannel
     {
         
         // Get the mobile number/s from the model
-        Log::info('Trying!');
-        Log::info('Notifiable');
         
         if ($notifiable->routeNotificationFor(\NotificationChannels\TextLocal\TextlocalChannel::class))
         {
@@ -126,7 +124,7 @@ class TextlocalChannel
         }
         try {
             $response = $client
-            ->sendSms($numbers, $message, $this->sender, false, $this->receiptURL, $this->customData);    
+            ->sendSms($numbers, $message, $this->sender, null, false, $this->receiptURL, $this->customData);    
         }
         catch (Exception $e)
         {
